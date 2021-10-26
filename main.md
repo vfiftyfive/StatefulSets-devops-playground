@@ -30,7 +30,7 @@ kind: Pod
 metadata:
   creationTimestamp: null
   labels:
-    #ADD THE FOLLOWING LINE
+    #ADD THE FOLLOWING LINE AND REPLACE "nic" WITH YOUR OWN NAME
     owner: nic
     run: nginx
   name: nginx
@@ -96,7 +96,7 @@ metadata:
     app: nginx-deploy
   name: nginx-deploy
 spec:
-  #CHANGE THE FOLLOWING LINE TO CONTROL # OF REPLICA
+  #ADD THE FOLLOWING LINE AND REPLACE "nic" WITH YOUR OWN NAME
   replicas: 2
   selector:
     matchLabels:
@@ -106,7 +106,7 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        #ADD THE FOLLOWING LINE
+        #ADD THE FOLLOWING LINE 
         owner: nic
         app: nginx-deploy
     spec:
@@ -253,7 +253,7 @@ output:
 ```
 
 ### Passing data to applications
-Kubernetes defines various patterns to pass data to the application. We are going to use the downward API and volumes to display dynamic content. 
+Kubernetes defines various patterns to pass data to the application. We are going to use volumes abd the downward API to display dynamic content. 
 
 1. `Task 9`: Add an environment variable in the pod template. It must be set your name, based on the label previously configured.
 ```
@@ -312,6 +312,8 @@ output:
 | | | | | (__    \ V  V / (_| \__ \ |  _  |  __/ | |  __/_|_|_|
 |_| |_|_|\___|    \_/\_/ \__,_|___/ |_| |_|\___|_|  \___(_|_|_)
 ```
+
+Of course, the output should match your name :-)
 
 Let's explore another pattern for passing data to the application. Now we're going to use an `init container` to pass data to the main container by writing to a shared volume.
 
@@ -409,13 +411,13 @@ When persistent data is required, Kubernetes provides the `PersistentVolume` obj
 
 In this section we take a closer look at Kubernetes `StatefulSets`. They were originally called "PetSets", which clearly makes you understand their use case. `StatefulSets` were introduced in Kubernetes 1.5
 and have the following properties:
-- Each Pod replica gets a stable hostname with a unique index. For example if you create a `StatefulSet` named "mymongodb" configured with 3 Pod replicas, these pods will be named: mymongodb-0, mymongodb-1, and mymongodb-2.
-- Each Pod replica is created in order, from the lowest to highest index. They are not created in parallel, Pod n is only created after Pod n-1 is up and running. This also applies when scaling up or upgrading `StatefulSets`.
+- Each Pod replica gets a stable hostname with a unique index. For example if you create a `StatefulSet` named "mymongodb" configured with 3 Pod replicas, these pods will be named: `mymongodb-0`, `mymongodb-1`, and `mymongodb-2`.
+- Each Pod replica is created in order, from the lowest to highest index. They are not created in parallel, Pod `n` is only created after Pod `n-1` is up and running. This also applies when scaling up or upgrading `StatefulSets`.
 - When a `StatefulSet` is scaled down or deleted, the reversed ordered is used to process the operation, from the highest to lowest Pod index.
 
 Like `Deployments`, `StatefulSets` allows for phased rollout. This guarantees a minimum of Pod replicas will remain up and running while the others get updated. This is done using the rules mentioned in the previous paragraph. However, there are a couple of additional parameters you can leveraged depending on your goals:
 
-- `Parallel Deployments`: When `.spec.podManagementPolicy` is set to "Parallel", the control plane doesn't wait for Pods to become ready or deleted before proceeding with the remaining ones. If you don't need sequential processing for your `StatefulSets`, this option will speed up operations.
+- `Parallel Deployments`: When `.spec.podManagementPolicy` is set to `Parallel`, the control plane doesn't wait for Pods to become ready or deleted before proceeding with the remaining ones. If you don't need sequential processing for your `StatefulSets`, this option will speed up operations.
 - `Partitioned Updates`: You can set a particular ordinal index as the Pods partition limit. For example, if you set the number "5" as value, All pods with an index >= 5 will be updated, while the other ones are not touched. This remains true even if these Pods are deleted. The control plane will recreate them at the previous version.
 
 Now let's get some hands-on and deploy MongoDB as a `StatefulSet` of 3 replicas. We'll configure MongoDB manually. It is usually recommended to manage Databases deployed on Kubernetes with specific Kubernetes Operators, but this would add another layer complexity to this lab. I'm not sure everyone is ready for this yet!
@@ -426,9 +428,12 @@ Before deploying the `StatefulSet`, we are going to install Ondat. In the same w
 ```
 curl -sL https://storageos.run | bash
 ```
-This creates a new `StorageClass` named fast
+This creates a new `StorageClass` named `fast`
 
 2. `Task 14`: Deploy MongoDB `StatefulSet` and the corresponding headless service.
+```
+vi mongodb-sts.yaml
+```
 ```YAML
 apiVersion: v1
 kind: Service
@@ -482,6 +487,10 @@ spec:
         requests:
           storage: 1Gi
 ```
+```
+kubectl apply -f mongodb-sts.yaml
+```
+```
 3. `Task 15`: Check Pods, StatefulSets, PVC, PV and Ondat volumes.
 ```
 kubectl get pods,sts,svc,pvc,pv  
@@ -517,13 +526,19 @@ kubectl exec -it mongodb-0 mongo
 ```
 Once connected to the database, type:
 ```
-rs.initiate({ _id: "rs0", members: [ { _id:0, host: "mongodb-0.mongodb:27017" } ]});
+>rs.initiate({ _id: "rs0", members: [ { _id:0, host: "mongodb-0.mongodb:27017" } ]});
+
+...
 ```
 ```
-rs.add("mongodb-1.mongodb:27017");
+>rs.add("mongodb-1.mongodb:27017");
+
+...
 ```
 ```
-rs.add("mongodb-2.mongodb:27017");
+>rs.add("mongodb-2.mongodb:27017");
+
+...
 ```
 Check the output of `rs.status()`. You should have the 3 members listed.
 
