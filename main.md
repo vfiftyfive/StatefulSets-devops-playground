@@ -490,7 +490,6 @@ spec:
 ```
 kubectl apply -f mongodb-sts.yaml
 ```
-```
 3. `Task 15`: Check Pods, StatefulSets, PVC, PV and Ondat volumes.
 ```
 kubectl get pods,sts,svc,pvc,pv  
@@ -526,18 +525,15 @@ kubectl exec -it mongodb-0 mongo
 ```
 Once connected to the database, type:
 ```
-\>rs.initiate({ _id: "rs0", members: [ { _id:0, host: "mongodb-0.mongodb:27017" } ]});
-
+>rs.initiate({ _id: "rs0", members: [ { _id:0, host: "mongodb-0.mongodb:27017" } ]});
 ...
 ```
 ```
-\>rs.add("mongodb-1.mongodb:27017");
-
+>rs.add("mongodb-1.mongodb:27017");
 ...
 ```
 ```
-\>rs.add("mongodb-2.mongodb:27017");
-
+>rs.add("mongodb-2.mongodb:27017");
 ...
 ```
 Check the output of `rs.status()`. You should have the 3 members listed.
