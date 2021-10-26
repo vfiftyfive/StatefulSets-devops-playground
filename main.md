@@ -538,9 +538,10 @@ Once connected to the database, type:
 ```
 Check the output of `rs.status()`. You should have the 3 members listed.
 
-The next step is to deploy an application that will make use of this Database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". Let's first run a Kubernetes Job to perform this task:
+The next step is to deploy an application that will make use of this database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". Let's first run a Kubernetes Job to perform this task:
 
 5. `Task 17`: Add MongoDB documents
+
 First, let's create a boilerplate for the Kubernetes `Job` object using the container image that is going to populate the database.
 ```
 kubectl create job add-data-to-mongodb --image=vfiftyfive/marvel_init_db --dry-run=client -o yaml > job.yaml
@@ -583,7 +584,8 @@ output:
 NAME                        READY   STATUS      RESTARTS   AGE
 add-data-to-mongodb-trw8w   0/1     Completed   0          49s
 ```
-The job status will initially be displayed as "Running" and will change to "Completed" once the data has been ingested.
+The job status will initially be displayed as `Running` and will change to `Completed` once the data has been ingested.
+
 6. `Task 18`: Check the data is present in the database
 ```
 kubectl run -it --rm --image vfiftyfive/utilities:first mongo-client -- mongosh "mongodb://mongodb-0.mongodb.default.svc.cluster.local" 
