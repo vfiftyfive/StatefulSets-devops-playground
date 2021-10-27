@@ -52,7 +52,7 @@ Verify the label has been applied:
 ```
 kubectl get pod nginx --show-labels
 ```
-output:
+Output:
 ```
 NAME    READY   STATUS    RESTARTS   AGE   LABELS
 nginx   1/1     Running   0          82s   owner=nic,run=nginx
@@ -125,7 +125,7 @@ Verify the label has been applied:
 ```
 kubectl get pod --show-labels
 ```
-output:
+Output:
 ```
 NAME                            READY   STATUS    RESTARTS   AGE   LABELS
 nginx                           1/1     Running   0          25h   owner=nic,run=nginx
@@ -140,7 +140,7 @@ Verify the Deployment has been scaled successfully:
 ```
 kubectl get pod --show-labels
 ```
-output:
+Output:
 ```
 NAME                            READY   STATUS    RESTARTS   AGE   LABELS
 nginx                           1/1     Running   0          26h   owner=nic,run=nginx
@@ -192,7 +192,7 @@ kubectl apply -f nginx-deploy.yaml
 ```
 kubectl rollout status deploy nginx-deploy
 ```
-output:
+Output:
 ```
 Waiting for deployment "nginx-deploy" rollout to finish: 3 out of 4 new replicas have been updated...
 Waiting for deployment "nginx-deploy" rollout to finish: 3 out of 4 new replicas have been updated...
@@ -215,7 +215,7 @@ kubectl run --image=curlimages/curl client --command -- sleep 20000
 ```
 kubectl exec -it client -- curl nginx-deploy.default.svc.cluster.local:8000
 ```
-output:
+Output:
 ```
  _   _      _ _         _____
 | | | | ___| | | ___   |  ___| __ ___  _ __ ___
@@ -233,13 +233,13 @@ output:
 ```
 kubectl rollout history deploy nginx-deploy
 ```
-output:
+Output:
 ```
 REVISION  CHANGE-CAUSE
 1         <none>
 2         <none>
 ```
-command:
+Command:
 ```
 kubectl rollout undo deploy nginx-deploy 
 ```
@@ -247,7 +247,7 @@ kubectl rollout undo deploy nginx-deploy
 ```
 kubectl exec -it client -- curl nginx-deploy.default.svc.cluster.local:8000 | grep title
 ```
-output:
+Output:
 ```
 <title>Welcome to nginx!</title>
 ```
@@ -304,7 +304,7 @@ Wait until all Pods have have been replaced and run:
 ```
 kubectl exec -it client -- curl nginx-deploy.default.svc.cluster.local:8000
 ```
-output:
+Output:
 ```
        _       __        __          _   _               _ _ _
  _ __ (_) ___  \ \      / /_ _ ___  | | | | ___ _ __ ___| | | |
@@ -382,7 +382,7 @@ kubectl replace --force -f nginx-deploy.yaml
 ```
 kubectl exec -it client -- curl nginx-deploy.default.svc.cluster.local:8000
 ```
-output:
+Output:
 ```
              _                     _            _                    __
  _ __   __ _(_)_ __ __  __      __| | ___ _ __ | | ___  _   _       / /_
@@ -494,7 +494,7 @@ kubectl apply -f mongodb-sts.yaml
 ```
 kubectl get pods,sts,svc,pvc,pv  
 ```
-output:
+Output:
 ```                                                                                                               
 NAME            READY   STATUS    RESTARTS   AGE
 pod/mongodb-0   1/1     Running   0          2m27s
@@ -523,7 +523,7 @@ Also check the Ondat volumes:
 ```
 kubectl exec -it -n kube-system cli -- storageos get volumes -n default
 ```
-output:
+Output:
 ```
 NAMESPACE  NAME                                      SIZE     LOCATION                    ATTACHED ON        REPLICAS  AGE
 default    pvc-39b61ee9-a475-435b-8ca4-816adc5f7504  1.0 GiB  nic-temp-master-1 (online)  nic-temp-master-1  0/0       1 day ago
@@ -591,7 +591,7 @@ status: {}
 ```
 kubectl apply -f job.yaml
 ```
-output:
+Output:
 ```
 NAME                        READY   STATUS      RESTARTS   AGE
 add-data-to-mongodb-trw8w   0/1     Completed   0          49s
@@ -602,12 +602,12 @@ The job status will initially be displayed as `Running` and will change to `Comp
 ```
 kubectl run -it --rm --image vfiftyfive/utilities:first mongo-client -- mongosh "mongodb://mongodb-0.mongodb.default.svc.cluster.local" 
 ```
-output:
+Output:
 ```
 ...
 rs0 [direct: primary] test>
 ```
-commands:
+Command:
 ```
 > use marvel
 ...
@@ -615,7 +615,7 @@ commands:
 ...
 > db.characters.find({}).count()
 ```
-outputs:
+Output:
 ```
 128
 ```
@@ -668,23 +668,39 @@ spec:
         resources: {}
 status: {}
 ```
-As done before, let's expose this awesome application as a Kuberenetes service
+Now let's deploy the application:
+```
+kubectl apply -f marvel_deployment.yaml
+```
+And verify all 3 pods have been deployed and are running:
+```
+kubectl get pods | grep marvel
+```
+Output:
+```
+marvel-frontend-69c57f7ff5-m2sd8   1/1     Running     0          1m
+marvel-frontend-69c57f7ff5-rfv8s   1/1     Running     0          1m
+marvel-frontend-69c57f7ff5-rxn7f   1/1     Running     0          1m
+```
+As done before, let's expose this awesome application as a Kubernetes service
+
+8. `Task 20`: Expose the application as Kubernetes `Service`
 ```
 kubectl expose deploy marvel-frontend --type=ClusterIP --port=8080 --target-port=80
 ```
-8. `Task 20`: Check Kubernetes Service
+Let's check it's been properly configured in Kubernetes:
 ```
 kubectl get svc marvel-frontend
 ```
-output:
+Output:
 ```
 NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 marvel-frontend   ClusterIP   10.43.44.204   <none>        8080/TCP   2m8s
 ```
 9. `Task 21`: Check Application is connected to the backend MongoDB collection.
 
-There are 2 ways to access the application. 
-- If you run `kubectl` locally on your computer:
+There are 2 ways to access the application:
+- If you are running `kubectl` locally on your computer:
 ```
 kubectl port-forward svc/marvel-frontend 8080
 ```
@@ -692,7 +708,30 @@ Then open your browser and navigate to the URL: `http://localhost:8080`
 
 <a href="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png"><img src="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png" width="800"/></a>
 
-Set ondat PVC replicas
+- If you are running `kubectl` on a local machine:
+
+The first part is identical, run:
+```
+kubectl port-forward svc/marvel-frontend 8080
+```
+Then you need to create and `SSH` tunnel between your local machine and the remote `kubectl` machine:
+```
+ssh -L 8080:localhost:8080 your_user@remote_machine_address -N
+```
+Output example:
+```
+The authenticity of host '178.79.180.33 (178.79.180.33)' can't be established.
+ECDSA key fingerprint is SHA256:P64TxSvhnttm8176JFdYzVUY4w5NtAx8auUr7IrFdyI.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+```
+The command won't return. THIS IS EXPECTED.
+
+You can now open your browser and navigate to the URL: `http://localhost:8080`
+
+
+
+
+
 
 
 
