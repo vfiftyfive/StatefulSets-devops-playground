@@ -117,7 +117,7 @@ metadata:
     app: nginx-deploy
   name: nginx-deploy
 spec:
-  #ADD THE FOLLOWING LINE AND REPLACE "nic" WITH YOUR OWN NAME
+  #ADD THE FOLLOWING LINE
   replicas: 2
   selector:
     matchLabels:
@@ -127,7 +127,7 @@ spec:
     metadata:
       creationTimestamp: null
       labels:
-        #ADD THE FOLLOWING LINE 
+        #ADD THE FOLLOWING LINE AND REPLACE "nic" WITH YOUR OWN NAME
         owner: nic
         app: nginx-deploy
     spec:
