@@ -689,7 +689,7 @@ kubectl port-forward svc/marvel-frontend 8080
 ```
 Then open your browser and navigate to the URL: `http://localhost:8080`
 
-<a href="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png"><img src="https://your-image-url.type" width="200"/></a>
+<a href="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png"><img src="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png" width="200"/></a>
 
 Set ondat PVC replicas
 
