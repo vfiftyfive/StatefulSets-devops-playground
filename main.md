@@ -26,6 +26,21 @@ If you lose your cluster token, create a new one on the master:
 kubeadm token create --print-join-command
 ```
 
+# Additonal Configuration
+Configure `Vim` settings as below to avoid any tabulation issue when doing copy/paste from the guide to your console.
+```
+vi ~/.vimrc
+```
+```
+syntax on
+set background=dark
+let g:indent_guides_enable_on_vim_startup = 1
+set tabstop=2
+set shiftwidth=2
+set expandtab
+```
+Feel free to use `Vim` instead of `Vi` in the rest of the document.
+
 # Create your first application
 In this section we review some of the Kubernetes foundations required for creating and deploying basic applications.
 
