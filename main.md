@@ -490,7 +490,7 @@ spec:
 ```
 kubectl apply -f mongodb-sts.yaml
 ```
-3. `Task 15`: Check Pods, StatefulSets, PVC, PV.
+3. `Task 15`: Check `Pods`, `StatefulSets`, `PersistentVolumesClaims` (`PVC`), `PersistentVolumes` (`PV`).
 ```
 kubectl get pods,sts,svc,pvc,pv  
 ```
@@ -740,12 +740,138 @@ The command won't return. THIS IS EXPECTED.
 
 You can open your browser and navigate to the URL: `http://localhost:8080`
 
-# Distributed Data availability
+# Distributed Data Availability
 
 It is now time to try to break things to see how Ondat helps increase availability in a kube-native way. For this, we're first going to add volumes replicas to our stateful application and then we'll introduce some failure scenarios.
 
+1. `Task 22`: Configure each Ondat PVC volumes with 2 replicas
+```
+kubectl exec -it -n kube-system cli -- storageos get volumes -n default
+```
+Output:
+```
+NAMESPACE  NAME             SIZE     LOCATION                   ATTACHED ON       REPLICAS  AGE
+default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  0/0       6 hours ago
+default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  0/0       6 hours ago
+default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  0/0       6 hours ago
+```
+Command:
+```
+kubectl label pvc --all storageos.com/replicas="2" --overwrite
+```
+Ondat utilizes Kubernetes `labels` primitives to enable capabilities. In that particular example, we enabled 2 replicas for every Ondat PVC present in the default namespace.
+Let's verify this by running the check command again:
+```
+kubectl exec -it -n kube-system cli -- storageos get volumes -n default
+```
+Output:
+```
+NAMESPACE  NAME             SIZE     LOCATION                   ATTACHED ON       REPLICAS  AGE
+default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  2/2       6 hours ago
+default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  2/2       6 hours ago
+default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  2/2       6 hours ago
+```
+>`LOCATION` shows the node where the primary volume is attached
 
+>`ATTACHED ON` shows the node where the `Pod` is running
 
+We can notice the primary volume is attached to the same node as the `Pod` is running on. Ondat always tries to co-locate the primary volume with the node where the `Pod` is running. Sometimes this may not be possible. In that case, the volume can be accessed remotely by the `Pod` because Ondat presents a distributed data overlay to the `Pod`. It doens't matter if the `PersistentVolume` is physically local to the `Pod` or not. Ondat takes care of connecting the dots.
 
+The next step is to force the `Pod` and the primary volume to sit on different nodes. We'll then kill the node where the primary volume is located. The expectation is that another volume will instantly be promoted and that a new replica will be created in order to match the required number of replicas - 3 in our case. This should happens without the `Pod` losing access to the data at anytime.
 
+2. `Task 23`: Restart Pod on another node
 
+An easy way to evict the Pod from its node is to cordon the node, making it non-schedulable, and delete the `Pod`. As a result, The `StatefulSet` controller will restart the `Pod` on another available node.
+But first, find the `Pod` and attached `PVC` you want to work with.
+```
+kubectl get pvc
+```
+Output:
+```
+NAME                 STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE     VOLUMEMODE
+database-mongodb-0   Bound    pvc-1489ddf1-fcb9-417a-9906-c2de157f2247   1Gi        RWO            fast           7h46m   Filesystem
+database-mongodb-1   Bound    pvc-ff049c9d-97db-44e7-9193-0b72e4269aea   1Gi        RWO            fast           7h46m   Filesystem
+database-mongodb-2   Bound    pvc-97b3a55f-7f3b-45de-a102-b2837a9ce7a7   1Gi        RWO            fast           7h46m   Filesystem
+```
+In my case I want to work with Pod `database-mongodb-0`, and the attached volume is `pvc-1489ddf1-fcb9-417a-9906-c2de157f2247`. Both are running on node `nic-temp-worker2`, as displayed in the previous task.
+```
+#Replace the node name below with your node name
+kubectl cordon nic-temp-worker2 
+```
+```
+kubectl get nodes
+```
+Output:
+```
+NAME                STATUS                     ROLES                      AGE   VERSION
+nic-temp-master-1   Ready                      controlplane,etcd,worker   22d   v1.20.11
+nic-temp-worker1    Ready                      worker                     22d   v1.20.11
+nic-temp-worker2    Ready,SchedulingDisabled   worker                     22d   v1.20.11
+nic-temp-worker3    Ready                      worker                     22d   v1.20.11
+nic-temp-worker4    Ready                      worker                     22d   v1.20.11
+```
+Just after typing the following command, refresh the Marvel app.
+Command:
+```
+kubectl delete pod database-mongodb-0
+```
+The app should freeze a little bit and go back to normal a couple of seconds later. You can monitor what is happening in Kubernetes:
+```
+kubectl get pods | grep mongo
+```
+```
+NAME                               READY   STATUS              RESTARTS   AGE
+mongodb-0                          0/1     ContainerCreating   0          10s
+mongodb-1                          1/1     Running             0          8h
+mongodb-2                          1/1     Running             0          8h
+```
+Since we didn't configure the application to connect to all MongoDB nodes (only `mongodb-0`), it has to wait for the new `mongodb-0` `Pod` to be provisioned again. The application should quickly come back up online and reconnect to the `PersistentVolume`, which is now remote.
+```
+kubectl exec -it -n kube-system cli -- storageos get volumes -n default
+```
+Output:
+```
+NAMESPACE  NAME                                      SIZE     LOCATION                   ATTACHED ON       REPLICAS  AGE
+default    pvc-97b3a55f-7f3b-45de-a102-b2837a9ce7a7  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  2/2       8 hours ago
+default    pvc-1489ddf1-fcb9-417a-9906-c2de157f2247  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker4  2/2       8 hours ago
+default    pvc-ff049c9d-97db-44e7-9193-0b72e4269aea  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  2/2       8 hours ago
+```
+We can notice that `mongodb-0` is now running on node `nic-temp-worker4`, but the volume is still attached to `nic-temp-worker2`. The `Pod` believes it is accessing its `PersistentVolume` locally on node `nic-temp-worker4`. But in reality the Ondat engine acts as an interface and establishes the connection to the backend volume located on node `nic-temp-worker2`. Without Ondat, the `Pod` wouldn't have been able to restart on another node, since its `PersistentVolume` wouldn't have been reachable.
+
+3. `Task 24`: Uncordon the Kubernetes node. 
+```
+#Replace the node name below with your node name
+kubectl uncordon nic-temp-worker2
+```
+Validate the node is uncordonned:
+```
+kubectl get nodes
+```
+Output:
+```
+NAME                STATUS   ROLES                      AGE   VERSION
+nic-temp-master-1   Ready    controlplane,etcd,worker   22d   v1.20.11
+nic-temp-worker1    Ready    worker                     22d   v1.20.11
+nic-temp-worker2    Ready    worker                     22d   v1.20.11
+nic-temp-worker3    Ready    worker                     22d   v1.20.11
+nic-temp-worker4    Ready    worker                     22d   v1.20.11
+```
+4. `Task 25`: Reboot the node serving the primary volume
+In the previous task, you've identified the node where the primary volume is attached. In my case, this is node `nic-temp-worker2`. Let's reboot this node.
+```
+ssh user@node
+shutdown -r now
+```
+While the node reboots, refresh the Marvel application. There should not be any lag this time as the `Pod` is still available. An available replica is promoted and a new one is created to match the required number of replicas.
+```
+kubectl exec -it -n kube-system cli -- storageos get volumes -n 
+```
+```
+NAMESPACE  NAME             SIZE     LOCATION                   ATTACHED ON       REPLICAS  AGE
+default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker3 (online)                    2/2       8 hours ago
+default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker1 (online)  nic-temp-worker4  2/2       8 hours ago
+default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  2/2       8 hours ago
+```
+The primary volume is now located on `nic-temp-worker1`. We didn't experience any disruption while the volume was promoted. The volume continues to be presented to the node `nic-temp-worker4` through a remote protocol enabled by the Ondat engine.
+
+> That was the last task, CONGRATULATIONS FOR MAKING IT TO THE END!!!
