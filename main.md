@@ -685,6 +685,11 @@ marvel-frontend-69c57f7ff5-rxn7f   1/1     Running     0          1m
 As done before, let's expose this awesome application as a Kubernetes service
 
 8. `Task 20`: Expose the application as Kubernetes `Service`
+If the Kubernetes nodes are all directly accessible on any unprivileged port, you can use `NodePort`:
+```
+ kubectl expose deploy marvel-frontend --type=NodePort --port=8080 --target-port=80
+```
+If the Kubernetes nodes are not directly accessible, you can use `ClusterIP`:
 ```
 kubectl expose deploy marvel-frontend --type=ClusterIP --port=8080 --target-port=80
 ```
@@ -692,14 +697,21 @@ Let's check it's been properly configured in Kubernetes:
 ```
 kubectl get svc marvel-frontend
 ```
-Output:
+Output for `NodePort`
+```
+NAME              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+marvel-frontend   NodePort    10.43.39.82     <none>        8080:31730/TCP   23m
+```
+Output for `ClusterIP`
 ```
 NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 marvel-frontend   ClusterIP   10.43.44.204   <none>        8080/TCP   2m8s
 ```
+
 9. `Task 21`: Check Application is connected to the backend MongoDB collection.
 
-There are 2 ways to access the application:
+There are 3 ways to access the application:
+- If you have used `NodePort`, then simply connect to any node on the unprivileged port displayed in the service description. In the example of `Task 20`, you can open your browser and connect to `http://<kubernetes-node>:31730`
 - If you are running `kubectl` locally on your computer:
 ```
 kubectl port-forward svc/marvel-frontend 8080
@@ -708,7 +720,7 @@ Then open your browser and navigate to the URL: `http://localhost:8080`
 
 <a href="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png"><img src="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png" width="800"/></a>
 
-- If you are running `kubectl` on a local machine:
+- If you are running `kubectl` locally on your computer:
 
 The first part is identical, run:
 ```
@@ -726,9 +738,11 @@ Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
 ```
 The command won't return. THIS IS EXPECTED.
 
-You can now open your browser and navigate to the URL: `http://localhost:8080`
+You can open your browser and navigate to the URL: `http://localhost:8080`
 
+# Distributed Data availability
 
+It is now time to try to break things to see how Ondat helps increase availability in a kube-native way. For this, we're first going to add volumes replicas to our stateful application and then we'll introduce some failure scenarios.
 
 
 
