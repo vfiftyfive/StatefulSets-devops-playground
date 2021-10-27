@@ -461,7 +461,7 @@ Before deploying the `StatefulSet`, we are going to install Ondat. In the same w
 
 1. `Task 13`: [Install Ondat](https://docs.ondat.io/docs/self-eval/).
 ```
-curl -sL https://storageos.run | bash
+curl -sL https://ondat.run | bash
 ```
 This creates a new `StorageClass` named `fast`
 
