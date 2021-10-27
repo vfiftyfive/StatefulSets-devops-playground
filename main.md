@@ -681,7 +681,7 @@ output:
 NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 marvel-frontend   ClusterIP   10.43.44.204   <none>        8080/TCP   2m8s
 ```
-9. `Task 21`: Check Application is connected to the backend MongoDB collection
+9. `Task 21`: Check Application is connected to the backend MongoDB collection.
 There are 2 ways to access the application. 
 - If you run `kubectl` locally on your computer:
 ```
@@ -691,7 +691,6 @@ Then open your browser and navigate to the URL: `http://localhost:8080`
 
 <a href="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png"><img src="https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png" width="800"/></a>
 
-Set ondat PVC replicas
 
 
 
