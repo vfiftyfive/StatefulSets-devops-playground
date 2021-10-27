@@ -243,7 +243,7 @@ Command:
 ```
 kubectl rollout undo deploy nginx-deploy 
 ```
-7. Task 9: Check the original service has been restored.
+7. `Task 9`: Check the original service has been restored.
 ```
 kubectl exec -it client -- curl nginx-deploy.default.svc.cluster.local:8000 | grep title
 ```
@@ -255,7 +255,7 @@ Output:
 ### Passing data to applications
 Kubernetes defines various patterns to pass data to the application. We are going to use volumes abd the downward API to display dynamic content. 
 
-1. `Task 9`: Add an environment variable in the pod template. It must be set your name, based on the label previously configured.
+1. `Task 10`: Add an environment variable in the pod template. It must be set your name, based on the label previously configured.
 ```
 vi nginx-deploy.yaml
 ```
@@ -296,7 +296,7 @@ spec:
         resources: {}
 status: {}
 ```
-2. `Task 10`: Force the replacement of all Pods in the deployment and test the app again
+2. `Task 11`: Force the replacement of all Pods in the deployment and test the app again
 ```
 kubectl replace --force -f nginx-deploy.yaml
 ```
@@ -317,7 +317,7 @@ Of course, the output should match your name :-)
 
 Let's explore another pattern for passing data to the application. Now we're going to use an `init container` to pass data to the main container by writing to a shared volume.
 
-3. `Task 11`: Add an init container to the Pod template that writes the message to a shared file, and replace the existing Pods in the Deployment.
+3. `Task 12`: Add an init container to the Pod template that writes the message to a shared file, and replace the existing Pods in the Deployment.
 ```
 vi nginx-deploy.yaml
 ```
@@ -378,7 +378,7 @@ kubectl replace --force -f nginx-deploy.yaml
 ```
 `emptyDir` gives every individual Pod a temporary local in-memory storage. The message displayed should now be different for every Pod, as it is based on individual Pod hostname. Let's check this by using the client Pod again.
 
-4. `Task 12`: Query the Kubernetes service multiple times and record the result.
+4. `Task 13`: Query the Kubernetes service multiple times and record the result.
 ```
 kubectl exec -it client -- curl nginx-deploy.default.svc.cluster.local:8000
 ```
@@ -424,13 +424,13 @@ Now let's get some hands-on and deploy MongoDB as a `StatefulSet` of 3 replicas.
 
 Before deploying the `StatefulSet`, we are going to install Ondat. In the same way we have added a Pod template in the `Deployment` configuration, we'll need to add a `volumeClaimTemplate` in the `StatefulSet` configuration. This is because we want every MongoDB instance to mount its own persisten volume and not share it with other Pods. Ondat provides an automated way to provision these volumes by simply referencing a `StorageClass` in the `volumeClaimTemplate`. It also adds features labels to the persistent volumes provisioned, such as replication, encryption, thing provisioning, compresstion, etc. We are also going to explore these capabilities.
 
-1. `Task 13`: [Install Ondat](https://docs.ondat.io/docs/self-eval/)
+1. `Task 14`: [Install Ondat](https://docs.ondat.io/docs/self-eval/)
 ```
 curl -sL https://storageos.run | bash
 ```
 This creates a new `StorageClass` named `fast`
 
-2. `Task 14`: Deploy MongoDB `StatefulSet` and the corresponding headless service.
+2. `Task 15`: Deploy MongoDB `StatefulSet` and the corresponding headless service.
 ```
 vi mongodb-sts.yaml
 ```
@@ -490,7 +490,7 @@ spec:
 ```
 kubectl apply -f mongodb-sts.yaml
 ```
-3. `Task 15`: Check Pods, StatefulSets, PVC, PV.
+3. `Task 16`: Check Pods, StatefulSets, PVC, PV.
 ```
 kubectl get pods,sts,svc,pvc,pv  
 ```
@@ -530,7 +530,7 @@ default    pvc-39b61ee9-a475-435b-8ca4-816adc5f7504  1.0 GiB  nic-temp-master-1 
 default    pvc-74405f09-65ef-4e54-af52-43c619612ab2  1.0 GiB  nic-temp-worker1 (online)   nic-temp-worker1   0/0       1 day ago
 default    pvc-118e869e-513a-41f0-b789-adcc9b89775b  1.0 GiB  nic-temp-worker4 (online)   nic-temp-worker4   0/0       1 day ago
 ```
-4. `Task 16`: Set MongoDB Replication
+4. `Task 17`: Set MongoDB Replication
 ```
 kubectl exec -it mongodb-0 mongo
 ```
@@ -552,7 +552,7 @@ Check the output of `rs.status()`. You should have the 3 members listed.
 The next step is to deploy an application that will make use of this database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". 
 Let's first run a Kubernetes Job to perform fill the database with characters data:
 
-5. `Task 17`: Add MongoDB documents
+5. `Task 18`: Add MongoDB documents
 
 First, let's create a boilerplate for the Kubernetes `Job` object using the container image that is going to populate the database.
 ```
@@ -598,7 +598,7 @@ add-data-to-mongodb-trw8w   0/1     Completed   0          49s
 ```
 The job status will initially be displayed as `Running` and will change to `Completed` once the data has been ingested.
 
-6. `Task 18`: Check the data is present in the database
+6. `Task 19`: Check the data is present in the database
 ```
 kubectl run -it --rm --image vfiftyfive/utilities:first mongo-client -- mongosh "mongodb://mongodb-0.mongodb.default.svc.cluster.local" 
 ```
@@ -626,7 +626,7 @@ Output:
 #Then you can type "it" + 'enter key' to proceed with the next page. Repeat until "no cursor" is displayed instead of "it"
 ```
 
-7. `Task 19`: Deploy the frontend application
+7. `Task 20`: Deploy the frontend application
 For this, we create a `Deployment` boilerplate and add extra configuration elements. The applications is using `gunicorn` with `Flask`, providing a stateless HTTP frontend to present data from the MongoDB characters collection.
 ```
 kubectl create deployment marvel-frontend --port 80 --image vfiftyfive/flask_marvel --dry-run=client -o yaml > marvel_deployment.yaml
@@ -684,7 +684,7 @@ marvel-frontend-69c57f7ff5-rxn7f   1/1     Running     0          1m
 ```
 As done before, let's expose this awesome application as a Kubernetes service
 
-8. `Task 20`: Expose the application as Kubernetes `Service`
+8. `Task 21`: Expose the application as Kubernetes `Service`
 If the Kubernetes nodes are all directly accessible on any unprivileged port, you can use `NodePort`:
 ```
  kubectl expose deploy marvel-frontend --type=NodePort --port=8080 --target-port=80
@@ -708,7 +708,7 @@ NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 marvel-frontend   ClusterIP   10.43.44.204   <none>        8080/TCP   2m8s
 ```
 
-9. `Task 21`: Check Application is connected to the backend MongoDB collection.
+9. `Task 22`: Check Application is connected to the backend MongoDB collection.
 
 There are 3 ways to access the application:
 - If you have used `NodePort`, then simply connect to any node on the unprivileged port displayed in the service description. In the example of `Task 20`, you can open your browser and connect to `http://<kubernetes-node>:31730`
