@@ -2,8 +2,8 @@
 
 ## Objective
 
-The objective of this workshop is to explore Kubernetes StatefulSets and their use cases. Traditionally, Kubernetes applications are developed to run as Web applications. They don't often need to write persistent data to disk or need a stable identity. In the event of a node failure in Kubernetes, the controller plane  spawns new Pods to match the expected number of replicas. This is achieved by leveraging Kubernetes Deployment and ReplicaSets. The Pods they create are stateless and replaceable. When a Pod is created, it takes an arbitraty identity with an auto-generated unique name.
-On the opposite, StatefulSets are Kubernetes first class objects providing Pods with a stable identity, and ensuring they can write to individual persistent volumes. They have additional characteristics we're going to highlight in this workshop.
+The objective of this workshop is to explore Kubernetes StatefulSets and their use cases. Traditionally, Kubernetes applications are developed to run as Web applications. They don't often need to write persistent data to disk or need a stable identity. In the event of a node failure in Kubernetes, the controller plane  spawns new Pods to match the expected number of replicas. This is achieved by leveraging Kubernetes Deployment and ReplicaSets. The Pods they create are stateless and replaceable. When a Pod is created, it takes an arbitrary identity with an auto-generated unique name.
+On the other hand, StatefulSets are Kubernetes first class objects providing Pods with a stable identity, and ensuring they can write to individual persistent volumes. They have additional characteristics we're going to highlight in this workshop.
 
 # Step 0 - Bring your Kubernetes cluster up with `kubeadm`
 On your Master node, run:
@@ -26,7 +26,7 @@ If you lose your cluster token, create a new one on the master:
 kubeadm token create --print-join-command
 ```
 
-# Additonal Configuration
+# Additional Configuration
 Configure `Vim` settings as below to avoid any tabulation issue when doing copy/paste from the guide to your console.
 ```
 vi ~/.vimrc
@@ -94,7 +94,7 @@ nginx   1/1     Running   0          82s   owner=nic,run=nginx
 ```
 
 ## Replica Sets and Deployments
-`Pods` can be combined in a highly available Kubernetes object that ensures the intended number of running replicas is always met. This is achieved via the `ReplicaSet` controller. It is responsible for reconciling the current state of the cluster with the configuration stored in the Kubernetes database. That is, in the event of a node failure, the `Pods` running on that node and part of a `ReplicaSet` will be restarted on an other node available, if it matches the conditions to run them. 
+`Pods` can be combined in a highly available Kubernetes object that ensures the intended number of running replicas is always met. This is achieved via the `ReplicaSet` controller. It is responsible for reconciling the current state of the cluster with the configuration stored in the Kubernetes database. That is, in the event of a node failure, the `Pods` running on that node and part of a `ReplicaSet` will be restarted on another node available, if it matches the conditions to run them. 
 The `ReplicaSet` controller leverages Pod Templates to deploy individual pods when required. The `template` object in Kubernetes defines the `metadata` and `spec` to be used by the `Pod` when created. It is merely a wrapper around the `Pod` object. An example can be found below:
 
 ```YAML
@@ -290,7 +290,7 @@ Output:
 ### Passing data to applications
 Kubernetes defines various patterns to pass data to applications. We are going to use volumes and the downward API to display dynamic content. 
 
-1. `Task 9`: Add an environment variable in the Pod Template. It must be set your name, based on the label previously configured.
+1. `Task 9`: Add an environment variable in the Pod Template. It must set your name, based on the label previously configured.
 ```
 vi nginx-deploy.yaml
 ```
@@ -411,7 +411,7 @@ status: {}
 ```
 kubectl replace --force -f nginx-deploy.yaml
 ```
-`emptyDir` gives every individual Pod a temporary local in-memory storage. The message displayed should now be different for every Pod, as it is based on individual Pod hostname. Let's check this by using the client Pod again.
+`emptyDir` gives every individual Pod a temporary local in-memory storage. The message displayed should now be different for every Pod, as it is based on the individual Pod hostname. Let's check this by using the client Pod again.
 
 4. `Task 12`: Query the Kubernetes service multiple times and record the result.
 ```
@@ -437,7 +437,7 @@ Output:
  \__, | (_| |   \ V  V / (_| \__ \ |  _  |  __/ | |  __/
    /_/ \__,_|    \_/\_/ \__,_|___/ |_| |_|\___|_|  \___|
 ```
-Repeat the query. Every request leads to a different result. This is because every `Pod` backing the service VIP has a now a different message configured.
+Repeat the query. Every request leads to a different result. This is because every `Pod` backing the service VIP now has a different message configured.
 
 In summary, while `emptyDir` provides individual storage for every `Pod` in a deployment, its lifecycle is tied to the `Pod`. That is, if the `Pod` stops, the volume is deleted.
 When persistent data is required, Kubernetes provides the `PersistentVolumeClaim` object. But remember how we define Pod configuration in a `Deployment`: we use a template. So unless we use `RWX` (Read/Write Multiple, aka NFS or shared storage), `PersistentVolumes` won't work well with Deployments. The first Pod will claim the volume, and all remaining ones will fail to start.
@@ -448,14 +448,14 @@ In this section we take a closer look at Kubernetes `StatefulSets`. They were or
 and have the following properties:
 - Each `Pod` replica gets a stable hostname with a unique index. For example if you create a `StatefulSet` named "mymongodb" configured with 3 `Pod` replicas, these `Pods` will be named: `mymongodb-0`, `mymongodb-1`, and `mymongodb-2`.
 - Each `Pod` replica is created in order, from the lowest to highest index. They are not created in parallel, `Pod` `n` is only created after `Pod` `n-1` is up and running. This also applies when scaling up or upgrading `StatefulSets`.
-- When a `StatefulSet` is scaled down or deleted, the reversed ordered is used to process the operation, from the highest to lowest `Pod` index.
+- When a `StatefulSet` is scaled down or deleted, the reversed order is used to process the operation, from the highest to lowest `Pod` index.
 
 Like `Deployments`, `StatefulSets` allows for phased rollout. This guarantees a minimum of `Pod` replicas will remain up and running while the others get updated. This is done using the rules mentioned in the previous paragraph. However, there are a couple of additional parameters you can leveraged depending on your goals:
 
 - `Parallel Deployments`: When `.spec.podManagementPolicy` is set to `Parallel`, the control plane doesn't wait for `Pods` to become ready or deleted before proceeding with the remaining ones. If you don't need sequential processing for your `StatefulSets`, this option will speed up operations.
 - `Partitioned Updates`: You can set a particular ordinal index as the `Pods` partition limit. For example, if you set the number "5" as value, All `Pods` with an index >= 5 will be updated, while the other ones are not touched. This remains true even if these `Pods` are deleted. The control plane will recreate them at the previous version.
 
-Now let's get some hands-on and deploy MongoDB as a `StatefulSet` of 3 replicas. We'll configure MongoDB manually. It is usually recommended to manage Databases deployed on Kubernetes with specific Kubernetes Operators, but this would add another layer complexity to this lab. I'm not sure everyone is ready for this yet!
+Now let's get hands-on and deploy MongoDB as a `StatefulSet` of 3 replicas. We'll configure MongoDB manually. It is usually recommended to manage Databases deployed on Kubernetes with specific Kubernetes Operators, but this would add another layer of complexity to this lab. I'm not sure everyone is ready for this yet!
 
 Before deploying the `StatefulSet`, we are going to install Ondat. In the same way we have added a Pod Template in the `Deployment` configuration, we'll need to add a `volumeClaimTemplate` in the `StatefulSet` configuration. This is because we want every MongoDB instance to mount its own `PeristentVolume` and not share it with other `Pods`. Ondat provides an automated way to provision these volumes by simply referencing a `StorageClass` in the `volumeClaimTemplate`. It also adds features labels to the persistent volumes provisioned, such as replication, encryption, thin provisioning, compression, etc. We are also going to explore some of these capabilities.
 
@@ -779,7 +779,7 @@ You can open your browser and navigate to the URL: `http://localhost:8080`
 
 # Distributed Data Availability
 
-It is now time to try to break things to see how Ondat helps increase availability in a kube-native way. We are first going to add volumes replicas to our stateful application and then we'll introduce some failure scenarios.
+It is now time to try to break things to see how Ondat helps increase availability in a kube-native way. We are first going to add volume replicas to our stateful application and then we'll introduce some failure scenarios.
 
 1. `Task 22`: Configure each Ondat `PVC` volume with 2 replicas.
 ```
