@@ -880,10 +880,10 @@ default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4
 ```
 The primary volume is now located on `nic-temp-worker1`. We didn't experience any disruption at any time, including while the volume was promoted! The volume continues to be presented to the node `nic-temp-worker4` through a remote protocol enabled by the Ondat engine.
 
-That was the last task, CONGRATULATIONS FOR MAKING IT TO THE END!!!
+*That was the last task, CONGRATULATIONS FOR MAKING IT TO THE END!!!*
 
->Author: Nic Vermandé
+*Author*: Nic Vermandé
 
->Twitter: @nvermande
+*Twitter*: @nvermande
 
->Linkedin: https://www.linkedin.com/in/vnicolas/
+*Linkedin*: https://www.linkedin.com/in/vnicolas/
