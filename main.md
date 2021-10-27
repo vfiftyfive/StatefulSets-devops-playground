@@ -6,7 +6,7 @@ The objective of this workshop is to explore Kubernetes StatefulSets and their u
 On the opposite, StatefulSets are Kubernetes first class objects providing Pods with a stable identity, and ensuring they can write to individual persistent volumes. They have additional characteristics we're going to highlight in this workshop.
 
 # Create your first application
-In this section we review some of the Kubernetes foundations for creating and deploying basic applications.
+In this section we review some of the Kubernetes foundations required for creating and deploying basic applications.
 
 ## Pods
 An easy way to create a pod is to use `kubectl run` in dry-run mode and redirect the result to a file. You can then alter the configuration as needed.
@@ -18,7 +18,7 @@ kubectl run nginx --image=nginx --port=80 --dry-run=client -oyaml > nginx.yaml
 #To see other options, used kubectl run --help
 
 ```
-2. `Task 2`: Add a Label `owner: yourname` and deploy the Pod
+2. `Task 2`: Add a Label `owner: yourname` and deploy the Pod.
 
 ```
 vi nginx.yaml
@@ -59,8 +59,8 @@ nginx   1/1     Running   0          82s   owner=nic,run=nginx
 ```
 
 ## Replica Sets and Deployments
-Pods can be combined in a highly available Kubernetes object that ensures the intended number of running replicas is always met. This is achieved via the `ReplicaSet` controller. It is responsible for reconciling the current state of the cluster with the configuration stored in the Kubernetes database. That is, in the event of a node failure, the pods running on that node and part of a `ReplicaSet` will be restarted on an other node available, if it matches the conditions to run them. 
-The `ReplicaSet` controller leverages Pod Templates to deploy individual pods when required. The `template` object in Kubernetes defines the `metadata` and `spec` to be used by the Pod when created. It is merely a wrapper around the `Pod` object. An example can be found below:
+`Pods` can be combined in a highly available Kubernetes object that ensures the intended number of running replicas is always met. This is achieved via the `ReplicaSet` controller. It is responsible for reconciling the current state of the cluster with the configuration stored in the Kubernetes database. That is, in the event of a node failure, the `Pods` running on that node and part of a `ReplicaSet` will be restarted on an other node available, if it matches the conditions to run them. 
+The `ReplicaSet` controller leverages Pod Templates to deploy individual pods when required. The `template` object in Kubernetes defines the `metadata` and `spec` to be used by the `Pod` when created. It is merely a wrapper around the `Pod` object. An example can be found below:
 
 ```YAML
 template:
@@ -185,7 +185,7 @@ spec:
         resources: {}
 status: {}
 ```
-5. `Task 7`: Rollout and test the new application
+5. `Task 7`: Rollout and test the new application.
 ```
 kubectl apply -f nginx-deploy.yaml
 ```
@@ -253,9 +253,9 @@ Output:
 ```
 
 ### Passing data to applications
-Kubernetes defines various patterns to pass data to the application. We are going to use volumes abd the downward API to display dynamic content. 
+Kubernetes defines various patterns to pass data to applications. We are going to use volumes and the downward API to display dynamic content. 
 
-1. `Task 9`: Add an environment variable in the pod template. It must be set your name, based on the label previously configured.
+1. `Task 9`: Add an environment variable in the Pod Template. It must be set your name, based on the label previously configured.
 ```
 vi nginx-deploy.yaml
 ```
@@ -296,7 +296,7 @@ spec:
         resources: {}
 status: {}
 ```
-2. `Task 10`: Force the replacement of all Pods in the deployment and test the app again
+2. `Task 10`: Force the replacement of all `Pods` in the deployment and test the app again.
 ```
 kubectl replace --force -f nginx-deploy.yaml
 ```
@@ -315,9 +315,9 @@ Output:
 
 Of course, the output should match your name :-)
 
-Let's explore another pattern for passing data to the application. Now we're going to use an `init container` to pass data to the main container by writing to a shared volume.
+Let's explore another pattern for passing data to the application. We are now going to use an `init container` to pass data to the main container by writing to a shared volume.
 
-3. `Task 11`: Add an init container to the Pod template that writes the message to a shared file, and replace the existing Pods in the Deployment.
+3. `Task 11`: Add an init container to the Pod Template that writes the message to a shared file, and replace the existing `Pods` in the Deployment.
 ```
 vi nginx-deploy.yaml
 ```
@@ -343,7 +343,7 @@ spec:
         owner: nic
         app: nginx-deploy
     spec:
-      #ADD THE FOLLOWING INIT CONTAINER SECTION
+      #ADD THE FOLLOWING INITCONTAINERS SECTION
       initContainers:
       - name: copymessage
         image: alpine
@@ -402,29 +402,29 @@ Output:
  \__, | (_| |   \ V  V / (_| \__ \ |  _  |  __/ | |  __/
    /_/ \__,_|    \_/\_/ \__,_|___/ |_| |_|\___|_|  \___|
 ```
-Repeat the query. Every request leads to a different result. This is because every Pod backing the service VIP has a now a different message configured.
+Repeat the query. Every request leads to a different result. This is because every `Pod` backing the service VIP has a now a different message configured.
 
-In summary, while `emptyDir` provides distinct storage for every Pod in a deployment, its lifecycle is tied to the Pod. That is, if the Pod stops, the volume is deleted.
-When persistent data is required, Kubernetes provides the `PersistentVolume` object. But remember how we define Pod configuration in a `Deployment`: we use a template. So unless we use `RWX` (Read/Write Multiple, aka NFS or shared storage), `PersistentVolumes` won't work well with Deployments. The first Pod will claim the volume, and all remaining ones will fail to start.
+In summary, while `emptyDir` provides individual storage for every `Pod` in a deployment, its lifecycle is tied to the `Pod`. That is, if the `Pod` stops, the volume is deleted.
+When persistent data is required, Kubernetes provides the `PersistentVolumeClaim` object. But remember how we define Pod configuration in a `Deployment`: we use a template. So unless we use `RWX` (Read/Write Multiple, aka NFS or shared storage), `PersistentVolumes` won't work well with Deployments. The first Pod will claim the volume, and all remaining ones will fail to start.
 
 # Exploring StatefulSets
 
 In this section we take a closer look at Kubernetes `StatefulSets`. They were originally called "PetSets", which clearly makes you understand their use case. `StatefulSets` were introduced in Kubernetes 1.5
 and have the following properties:
-- Each Pod replica gets a stable hostname with a unique index. For example if you create a `StatefulSet` named "mymongodb" configured with 3 Pod replicas, these pods will be named: `mymongodb-0`, `mymongodb-1`, and `mymongodb-2`.
-- Each Pod replica is created in order, from the lowest to highest index. They are not created in parallel, Pod `n` is only created after Pod `n-1` is up and running. This also applies when scaling up or upgrading `StatefulSets`.
-- When a `StatefulSet` is scaled down or deleted, the reversed ordered is used to process the operation, from the highest to lowest Pod index.
+- Each `Pod` replica gets a stable hostname with a unique index. For example if you create a `StatefulSet` named "mymongodb" configured with 3 `Pod` replicas, these `Pods` will be named: `mymongodb-0`, `mymongodb-1`, and `mymongodb-2`.
+- Each `Pod` replica is created in order, from the lowest to highest index. They are not created in parallel, `Pod` `n` is only created after `Pod` `n-1` is up and running. This also applies when scaling up or upgrading `StatefulSets`.
+- When a `StatefulSet` is scaled down or deleted, the reversed ordered is used to process the operation, from the highest to lowest `Pod` index.
 
-Like `Deployments`, `StatefulSets` allows for phased rollout. This guarantees a minimum of Pod replicas will remain up and running while the others get updated. This is done using the rules mentioned in the previous paragraph. However, there are a couple of additional parameters you can leveraged depending on your goals:
+Like `Deployments`, `StatefulSets` allows for phased rollout. This guarantees a minimum of `Pod` replicas will remain up and running while the others get updated. This is done using the rules mentioned in the previous paragraph. However, there are a couple of additional parameters you can leveraged depending on your goals:
 
-- `Parallel Deployments`: When `.spec.podManagementPolicy` is set to `Parallel`, the control plane doesn't wait for Pods to become ready or deleted before proceeding with the remaining ones. If you don't need sequential processing for your `StatefulSets`, this option will speed up operations.
-- `Partitioned Updates`: You can set a particular ordinal index as the Pods partition limit. For example, if you set the number "5" as value, All pods with an index >= 5 will be updated, while the other ones are not touched. This remains true even if these Pods are deleted. The control plane will recreate them at the previous version.
+- `Parallel Deployments`: When `.spec.podManagementPolicy` is set to `Parallel`, the control plane doesn't wait for `Pods` to become ready or deleted before proceeding with the remaining ones. If you don't need sequential processing for your `StatefulSets`, this option will speed up operations.
+- `Partitioned Updates`: You can set a particular ordinal index as the `Pods` partition limit. For example, if you set the number "5" as value, All `Pods` with an index >= 5 will be updated, while the other ones are not touched. This remains true even if these `Pods` are deleted. The control plane will recreate them at the previous version.
 
 Now let's get some hands-on and deploy MongoDB as a `StatefulSet` of 3 replicas. We'll configure MongoDB manually. It is usually recommended to manage Databases deployed on Kubernetes with specific Kubernetes Operators, but this would add another layer complexity to this lab. I'm not sure everyone is ready for this yet!
 
-Before deploying the `StatefulSet`, we are going to install Ondat. In the same way we have added a Pod template in the `Deployment` configuration, we'll need to add a `volumeClaimTemplate` in the `StatefulSet` configuration. This is because we want every MongoDB instance to mount its own persisten volume and not share it with other Pods. Ondat provides an automated way to provision these volumes by simply referencing a `StorageClass` in the `volumeClaimTemplate`. It also adds features labels to the persistent volumes provisioned, such as replication, encryption, thing provisioning, compresstion, etc. We are also going to explore these capabilities.
+Before deploying the `StatefulSet`, we are going to install Ondat. In the same way we have added a Pod Template in the `Deployment` configuration, we'll need to add a `volumeClaimTemplate` in the `StatefulSet` configuration. This is because we want every MongoDB instance to mount its own `PeristentVolume` and not share it with other `Pods`. Ondat provides an automated way to provision these volumes by simply referencing a `StorageClass` in the `volumeClaimTemplate`. It also adds features labels to the persistent volumes provisioned, such as replication, encryption, thin provisioning, compression, etc. We are also going to explore some of these capabilities.
 
-1. `Task 13`: [Install Ondat](https://docs.ondat.io/docs/self-eval/)
+1. `Task 13`: [Install Ondat](https://docs.ondat.io/docs/self-eval/).
 ```
 curl -sL https://storageos.run | bash
 ```
@@ -525,12 +525,12 @@ kubectl exec -it -n kube-system cli -- storageos get volumes -n default
 ```
 Output:
 ```
-NAMESPACE  NAME                                      SIZE     LOCATION                    ATTACHED ON        REPLICAS  AGE
-default    pvc-39b61ee9-a475-435b-8ca4-816adc5f7504  1.0 GiB  nic-temp-master-1 (online)  nic-temp-master-1  0/0       1 day ago
-default    pvc-74405f09-65ef-4e54-af52-43c619612ab2  1.0 GiB  nic-temp-worker1 (online)   nic-temp-worker1   0/0       1 day ago
-default    pvc-118e869e-513a-41f0-b789-adcc9b89775b  1.0 GiB  nic-temp-worker4 (online)   nic-temp-worker4   0/0       1 day ago
+NAMESPACE  NAME              SIZE     LOCATION                    ATTACHED ON        REPLICAS  AGE
+default    pvc-39b61ee9-...  1.0 GiB  nic-temp-master-1 (online)  nic-temp-master-1  0/0       1 day ago
+default    pvc-74405f09-...  1.0 GiB  nic-temp-worker1 (online)   nic-temp-worker1   0/0       1 day ago
+default    pvc-118e869e-...  1.0 GiB  nic-temp-worker4 (online)   nic-temp-worker4   0/0       1 day ago
 ```
-4. `Task 16`: Set MongoDB Replication
+4. `Task 16`: Configure MongoDB Replication.
 ```
 kubectl exec -it mongodb-0 mongo
 ```
@@ -550,9 +550,9 @@ Once connected to the database, type:
 Check the output of `rs.status()`. You should have the 3 members listed.
 
 The next step is to deploy an application that will make use of this database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". 
-Let's first run a Kubernetes Job to perform fill the database with characters data:
+Let's first run a Kubernetes Job to fill the database with characters data:
 
-5. `Task 17`: Add MongoDB documents
+5. `Task 17`: Add MongoDB Documents.
 
 First, let's create a boilerplate for the Kubernetes `Job` object using the container image that is going to populate the database.
 ```
@@ -598,7 +598,7 @@ add-data-to-mongodb-trw8w   0/1     Completed   0          49s
 ```
 The job status will initially be displayed as `Running` and will change to `Completed` once the data has been ingested.
 
-6. `Task 18`: Check the data is present in the database
+6. `Task 18`: Check the data is present in the database.
 ```
 kubectl run -it --rm --image vfiftyfive/utilities:first mongo-client -- mongosh "mongodb://mongodb-0.mongodb.default.svc.cluster.local" 
 ```
@@ -626,8 +626,9 @@ Output:
 #Then you can type "it" + 'enter key' to proceed with the next page. Repeat until "no cursor" is displayed instead of "it"
 ```
 
-7. `Task 19`: Deploy the frontend application
-For this, we create a `Deployment` boilerplate and add extra configuration elements. The applications is using `gunicorn` with `Flask`, providing a stateless HTTP frontend to present data from the MongoDB characters collection.
+7. `Task 19`: Deploy the frontend application.
+
+Let's create a `Deployment` boilerplate and add extra configuration elements. The application is using `gunicorn` with `Flask`, providing a stateless HTTP frontend to present data from the MongoDB characters collection.
 ```
 kubectl create deployment marvel-frontend --port 80 --image vfiftyfive/flask_marvel --dry-run=client -o yaml > marvel_deployment.yaml
 ```
@@ -682,9 +683,10 @@ marvel-frontend-69c57f7ff5-m2sd8   1/1     Running     0          1m
 marvel-frontend-69c57f7ff5-rfv8s   1/1     Running     0          1m
 marvel-frontend-69c57f7ff5-rxn7f   1/1     Running     0          1m
 ```
-As done before, let's expose this awesome application as a Kubernetes service
+As done before, let's expose this awesome application as a Kubernetes service.
 
-8. `Task 20`: Expose the application as Kubernetes `Service`
+8. `Task 20`: Expose the application as Kubernetes `Service`.
+
 If the Kubernetes nodes are all directly accessible on any unprivileged port, you can use `NodePort`:
 ```
  kubectl expose deploy marvel-frontend --type=NodePort --port=8080 --target-port=80
@@ -693,7 +695,7 @@ If the Kubernetes nodes are not directly accessible, you can use `ClusterIP`:
 ```
 kubectl expose deploy marvel-frontend --type=ClusterIP --port=8080 --target-port=80
 ```
-Let's check it's been properly configured in Kubernetes:
+Let's validate the configuration:
 ```
 kubectl get svc marvel-frontend
 ```
@@ -708,7 +710,7 @@ NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
 marvel-frontend   ClusterIP   10.43.44.204   <none>        8080/TCP   2m8s
 ```
 
-9. `Task 21`: Check Application is connected to the backend MongoDB collection.
+9. `Task 21`: Check the application is connected to the backend MongoDB collection.
 
 There are 3 ways to access the application:
 - If you have used `NodePort`, then simply connect to any node on the unprivileged port displayed in the service description. In the example of `Task 20`, you can open your browser and connect to `http://<kubernetes-node>:31730`
@@ -726,7 +728,7 @@ The first part is identical, run:
 ```
 kubectl port-forward svc/marvel-frontend 8080
 ```
-Then you need to create and `SSH` tunnel between your local machine and the remote `kubectl` machine:
+Create and `SSH` tunnel between your local machine and the remote `kubectl` machine:
 ```
 ssh -L 8080:localhost:8080 your_user@remote_machine_address -N
 ```
@@ -742,9 +744,9 @@ You can open your browser and navigate to the URL: `http://localhost:8080`
 
 # Distributed Data Availability
 
-It is now time to try to break things to see how Ondat helps increase availability in a kube-native way. For this, we're first going to add volumes replicas to our stateful application and then we'll introduce some failure scenarios.
+It is now time to try to break things to see how Ondat helps increase availability in a kube-native way. We are first going to add volumes replicas to our stateful application and then we'll introduce some failure scenarios.
 
-1. `Task 22`: Configure each Ondat PVC volumes with 2 replicas
+1. `Task 22`: Configure each Ondat `PVC` volume with 2 replicas.
 ```
 kubectl exec -it -n kube-system cli -- storageos get volumes -n default
 ```
@@ -755,11 +757,13 @@ default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2
 default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  0/0       6 hours ago
 default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  0/0       6 hours ago
 ```
+There is currently 0 replicat configured.
+
 Command:
 ```
 kubectl label pvc --all storageos.com/replicas="2" --overwrite
 ```
-Ondat utilizes Kubernetes `labels` primitives to enable capabilities. In that particular example, we enabled 2 replicas for every Ondat PVC present in the default namespace.
+Ondat utilizes Kubernetes `labels` primitives to enable and configure features. In that particular example, we enabled 2 replicas for every Ondat `PVC` present in the default namespace.
 Let's verify this by running the check command again:
 ```
 kubectl exec -it -n kube-system cli -- storageos get volumes -n default
@@ -771,15 +775,15 @@ default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2
 default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  2/2       6 hours ago
 default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  2/2       6 hours ago
 ```
->`LOCATION` shows the node where the primary volume is attached
+>`LOCATION` shows the node where the primary volume is currently attached
 
->`ATTACHED ON` shows the node where the `Pod` is running
+>`ATTACHED ON` shows the node where the `Pod` is currently running
 
 We can notice the primary volume is attached to the same node as the `Pod` is running on. Ondat always tries to co-locate the primary volume with the node where the `Pod` is running. Sometimes this may not be possible. In that case, the volume can be accessed remotely by the `Pod` because Ondat presents a distributed data overlay to the `Pod`. It doens't matter if the `PersistentVolume` is physically local to the `Pod` or not. Ondat takes care of connecting the dots.
 
 The next step is to force the `Pod` and the primary volume to sit on different nodes. We'll then kill the node where the primary volume is located. The expectation is that another volume will instantly be promoted and that a new replica will be created in order to match the required number of replicas - 3 in our case. This should happens without the `Pod` losing access to the data at anytime.
 
-2. `Task 23`: Restart Pod on another node
+2. `Task 23`: Restart `Pod` on another node.
 
 An easy way to evict the Pod from its node is to cordon the node, making it non-schedulable, and delete the `Pod`. As a result, The `StatefulSet` controller will restart the `Pod` on another available node.
 But first, find the `Pod` and attached `PVC` you want to work with.
@@ -811,6 +815,7 @@ nic-temp-worker3    Ready                      worker                     22d   
 nic-temp-worker4    Ready                      worker                     22d   v1.20.11
 ```
 Just after typing the following command, refresh the Marvel app.
+
 Command:
 ```
 kubectl delete pod database-mongodb-0
@@ -856,13 +861,14 @@ nic-temp-worker2    Ready    worker                     22d   v1.20.11
 nic-temp-worker3    Ready    worker                     22d   v1.20.11
 nic-temp-worker4    Ready    worker                     22d   v1.20.11
 ```
-4. `Task 25`: Reboot the node serving the primary volume
+4. `Task 25`: Reboot the node serving the primary volume.
+
 In the previous task, you've identified the node where the primary volume is attached. In my case, this is node `nic-temp-worker2`. Let's reboot this node.
 ```
 ssh user@node
 shutdown -r now
 ```
-While the node reboots, refresh the Marvel application. There should not be any lag this time as the `Pod` is still available. An available replica is promoted and a new one is created to match the required number of replicas.
+While the node reboots, refresh the Marvel application. There should not be any lag this time as the `Pod` is still available - However, we just killed the volume attached to it. An available replica is promoted and a new one is created to match the required number of replicas.
 ```
 kubectl exec -it -n kube-system cli -- storageos get volumes -n 
 ```
@@ -872,6 +878,12 @@ default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker3 (online)                  
 default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker1 (online)  nic-temp-worker4  2/2       8 hours ago
 default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  2/2       8 hours ago
 ```
-The primary volume is now located on `nic-temp-worker1`. We didn't experience any disruption while the volume was promoted. The volume continues to be presented to the node `nic-temp-worker4` through a remote protocol enabled by the Ondat engine.
+The primary volume is now located on `nic-temp-worker1`. We didn't experience any disruption at any time, including while the volume was promoted! The volume continues to be presented to the node `nic-temp-worker4` through a remote protocol enabled by the Ondat engine.
 
-> That was the last task, CONGRATULATIONS FOR MAKING IT TO THE END!!!
+That was the last task, CONGRATULATIONS FOR MAKING IT TO THE END!!!
+
+>Author: Nic Vermandé
+
+>Twitter: @nvermande
+
+>Linkedin: https://www.linkedin.com/in/vnicolas/
