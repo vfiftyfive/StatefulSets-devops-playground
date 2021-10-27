@@ -490,7 +490,7 @@ spec:
 ```
 kubectl apply -f mongodb-sts.yaml
 ```
-3. `Task 15`: Check Pods, StatefulSets, PVC, PV and Ondat volumes.
+3. `Task 15`: Check Pods, StatefulSets, PVC, PV.
 ```
 kubectl get pods,sts,svc,pvc,pv  
 ```
@@ -519,6 +519,17 @@ persistentvolume/pvc-448...   1Gi        RWO            Delete           Bound  
 persistentvolume/pvc-8c3...   1Gi        RWO            Delete           Bound    default/database-mongodb-1           fast              29m
 persistentvolume/pvc-f6a...   1Gi        RWO            Delete           Bound    default/database-mongodb-0           fast              29m
 ```
+Also check the Ondat volumes:
+```
+kubectl exec -it -n kube-system cli -- storageos get volumes -n default
+```
+output:
+```
+NAMESPACE  NAME                                      SIZE     LOCATION                    ATTACHED ON        REPLICAS  AGE
+default    pvc-39b61ee9-a475-435b-8ca4-816adc5f7504  1.0 GiB  nic-temp-master-1 (online)  nic-temp-master-1  0/0       1 day ago
+default    pvc-74405f09-65ef-4e54-af52-43c619612ab2  1.0 GiB  nic-temp-worker1 (online)   nic-temp-worker1   0/0       1 day ago
+default    pvc-118e869e-513a-41f0-b789-adcc9b89775b  1.0 GiB  nic-temp-worker4 (online)   nic-temp-worker4   0/0       1 day ago
+```
 4. `Task 16`: Set MongoDB Replication
 ```
 kubectl exec -it mongodb-0 mongo
@@ -538,7 +549,8 @@ Once connected to the database, type:
 ```
 Check the output of `rs.status()`. You should have the 3 members listed.
 
-The next step is to deploy an application that will make use of this database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". Let's first run a Kubernetes Job to perform this task:
+The next step is to deploy an application that will make use of this database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". 
+Let's first run a Kubernetes Job to perform fill the database with characters data:
 
 5. `Task 17`: Add MongoDB documents
 
@@ -607,7 +619,7 @@ outputs:
 ```
 128
 ```
-128 documents have been added to our database. If you want further check the content, you can run:
+128 documents have been added to our database. If you want to further check the content, you can run:
 ```
 > db.characters.find({})
 ...
@@ -615,11 +627,72 @@ outputs:
 ```
 
 7. `Task 19`: Deploy the frontend application
+For this, we create a `Deployment` boilerplate and add extra configuration elements. The applications is using `gunicorn` with `Flask`, providing a stateless HTTP frontend to present data from the MongoDB characters collection.
+```
+kubectl create deployment marvel-frontend --port 80 --image vfiftyfive/flask_marvel --dry-run=client -o yaml > marvel_deployment.yaml
+```
+```
+vi marvel_deployment.yaml
+```
+Add sections as required:
+```YAML
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: marvel-frontend
+  name: marvel-frontend
+spec:
+  #CHANGE REPLICAS TO 3
+  replicas: 3
+  selector:
+    matchLabels:
+      app: marvel-frontend
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: marvel-frontend
+    spec:
+      containers:
+      #ADD THE ENV SECTION TO SET THE TARGET DATABASE INSTANCE
+      - env:
+        - name: MONGO_HOST
+          value: mongodb-0.mongodb.default.svc.cluster.local
+        image: vfiftyfive/flask_marvel
+        name: flask-marvel-fds72
+        ports:
+        - containerPort: 80
+        resources: {}
+status: {}
+```
+As done before, let's expose this awesome application as a Kuberenetes service
+```
+kubectl expose deploy marvel-frontend --type=ClusterIP --port=8080 --target-port=80
+```
+8. `Task 20`: Check Kubernetes Service
+```
+kubectl get svc marvel-frontend
+```
+output:
+```
+NAME              TYPE        CLUSTER-IP     EXTERNAL-IP   PORT(S)    AGE
+marvel-frontend   ClusterIP   10.43.44.204   <none>        8080/TCP   2m8s
+```
+9. `Task 21`: Check Application is connected to the backend MongoDB collection
+There are 2 ways to access the application. 
+- If you run `kubectl` locally on your computer:
+```
+kubectl port-forward svc/marvel-frontend 8080
+```
+Then open your browser and navigate to the URL: `http://localhost:8080`
+![](https://nic-ondat.s3.eu-west-2.amazonaws.com/Screen+Shot+2021-10-27+at+2.50.28+PM.png){:height="50%" width="50%"}
 
 
 
-
-
+Set ondat PVC replicas
 
 
 
