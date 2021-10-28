@@ -833,7 +833,7 @@ database-mongodb-0   Bound    pvc-1489ddf1-fcb9-417a-9906-c2de157f2247   1Gi    
 database-mongodb-1   Bound    pvc-ff049c9d-97db-44e7-9193-0b72e4269aea   1Gi        RWO            fast           7h46m   Filesystem
 database-mongodb-2   Bound    pvc-97b3a55f-7f3b-45de-a102-b2837a9ce7a7   1Gi        RWO            fast           7h46m   Filesystem
 ```
-In my case I want to work with Pod `mongodb-0`, and the attached volume is `pvc-1489ddf1-fcb9-417a-9906-c2de157f2247`. Both are running on node `nic-temp-worker2`, as displayed in the previous task.
+We're going to work with the Pod `mongodb-0`, and the attached volume is `pvc-1489ddf1-fcb9-417a-9906-c2de157f2247`. In the example above, both are running on node `nic-temp-worker2`.
 ```
 #Replace the node name below with your node name
 kubectl cordon nic-temp-worker2 
@@ -906,7 +906,7 @@ shutdown -r now
 ```
 While the node reboots, refresh the Marvel application. There should not be any lag this time as the `Pod` is still available - However, we just killed the volume attached to it. An available replica is promoted and a new one is created to match the required number of replicas.
 ```
-kubectl exec -it -n kube-system cli -- storageos get volumes -n 
+kubectl exec -it -n kube-system cli -- storageos get volumes -n default
 ```
 ```
 NAMESPACE  NAME             SIZE     LOCATION                   ATTACHED ON       REPLICAS  AGE
