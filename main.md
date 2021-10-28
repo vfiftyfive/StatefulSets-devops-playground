@@ -631,7 +631,7 @@ Output:
 NAME                  COMPLETIONS   DURATION   AGE
 add-data-to-mongodb   1/1           26s        2m37s
 ```
-The job status will initially be displayed as `Running` and will change to `Completed` once the data has been ingested.
+The `Pod` status will initially be displayed as `Running` and will change to `Completed` once the data has been ingested.
 
 6. `Task 18`: Check the data is present in the database.
 ```
@@ -660,6 +660,7 @@ Output:
 ...
 #Then you can type "it" + 'enter key' to proceed with the next page. Repeat until "no cursor" is displayed instead of "it"
 ```
+Type `exit` when you're done.
 
 7. `Task 19`: Deploy the frontend application.
 
