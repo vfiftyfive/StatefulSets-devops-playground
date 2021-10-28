@@ -833,7 +833,7 @@ database-mongodb-0   Bound    pvc-1489ddf1-fcb9-417a-9906-c2de157f2247   1Gi    
 database-mongodb-1   Bound    pvc-ff049c9d-97db-44e7-9193-0b72e4269aea   1Gi        RWO            fast           7h46m   Filesystem
 database-mongodb-2   Bound    pvc-97b3a55f-7f3b-45de-a102-b2837a9ce7a7   1Gi        RWO            fast           7h46m   Filesystem
 ```
-In my case I want to work with Pod `database-mongodb-0`, and the attached volume is `pvc-1489ddf1-fcb9-417a-9906-c2de157f2247`. Both are running on node `nic-temp-worker2`, as displayed in the previous task.
+In my case I want to work with Pod `mongodb-0`, and the attached volume is `pvc-1489ddf1-fcb9-417a-9906-c2de157f2247`. Both are running on node `nic-temp-worker2`, as displayed in the previous task.
 ```
 #Replace the node name below with your node name
 kubectl cordon nic-temp-worker2 
@@ -854,7 +854,7 @@ Just after typing the following command, refresh the Marvel app.
 
 Command:
 ```
-kubectl delete pod database-mongodb-0
+kubectl delete pod mongodb-0
 ```
 The app should freeze a little bit and go back to normal a couple of seconds later. You can monitor what is happening in Kubernetes:
 ```
