@@ -623,10 +623,13 @@ status: {}
 ```
 kubectl apply -f job.yaml
 ```
+```
+kubectl get jobs
+```
 Output:
 ```
-NAME                        READY   STATUS      RESTARTS   AGE
-add-data-to-mongodb-trw8w   0/1     Completed   0          49s
+NAME                  COMPLETIONS   DURATION   AGE
+add-data-to-mongodb   1/1           26s        2m37s
 ```
 The job status will initially be displayed as `Running` and will change to `Completed` once the data has been ingested.
 
