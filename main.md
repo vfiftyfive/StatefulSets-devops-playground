@@ -850,23 +850,22 @@ nic-temp-worker2    Ready,SchedulingDisabled   worker                     22d   
 nic-temp-worker3    Ready                      worker                     22d   v1.20.11
 nic-temp-worker4    Ready                      worker                     22d   v1.20.11
 ```
-Just after typing the following command, refresh the Marvel app.
 
 Command:
 ```
 kubectl delete pod mongodb-0
 ```
-The app should freeze a little bit and go back to normal a couple of seconds later. You can monitor what is happening in Kubernetes:
 ```
 kubectl get pods | grep mongo
 ```
+Output:
 ```
 NAME                               READY   STATUS              RESTARTS   AGE
 mongodb-0                          0/1     ContainerCreating   0          10s
 mongodb-1                          1/1     Running             0          8h
 mongodb-2                          1/1     Running             0          8h
 ```
-Since we didn't configure the application to connect to all MongoDB nodes (only `mongodb-0`), it has to wait for the new `mongodb-0` `Pod` to be provisioned again. The application should quickly come back up online and reconnect to the `PersistentVolume`, which is now remote.
+Command:
 ```
 kubectl exec -it -n kube-system cli -- storageos get volumes -n default
 ```
@@ -904,7 +903,6 @@ In the previous task, you've identified the node where the primary volume is att
 ssh user@node
 shutdown -r now
 ```
-While the node reboots, refresh the Marvel application. There should not be any lag this time as the `Pod` is still available - However, we just killed the volume attached to it. An available replica is promoted and a new one is created to match the required number of replicas.
 ```
 kubectl exec -it -n kube-system cli -- storageos get volumes -n default
 ```
