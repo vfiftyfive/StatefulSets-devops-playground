@@ -793,7 +793,7 @@ default    pvc-97b3a55f...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2
 default    pvc-1489ddf1...  1.0 GiB  nic-temp-worker2 (online)  nic-temp-worker2  0/0       6 hours ago
 default    pvc-ff049c9d...  1.0 GiB  nic-temp-worker4 (online)  nic-temp-worker4  0/0       6 hours ago
 ```
-There is currently 0 replicat configured.
+There is currently 0 replica configured.
 
 Command:
 ```
