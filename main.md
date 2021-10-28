@@ -18,7 +18,7 @@ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documen
 ```
 On each of your worker nodes, run:
 ```
-kubeadm join <Cluster-IP>:6443 --token <Token> \
+sudo kubeadm join <Cluster-IP>:6443 --token <Token> \
         --discovery-token-ca-cert-hash sha256:<hash>
 ```
 If you lose your cluster token, create a new one on the master:
