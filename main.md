@@ -591,7 +591,7 @@ First, let's create a boilerplate for the Kubernetes `Job` object using the cont
 kubectl create job add-data-to-mongodb --image=vfiftyfive/marvel_init_db --dry-run=client -o yaml > job.yaml
 ```
 ```
-vim job.yaml
+vi job.yaml
 ```
 Add sections as required:
 ```YAML
