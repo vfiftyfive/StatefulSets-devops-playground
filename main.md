@@ -579,7 +579,7 @@ rs.add("mongodb-1.mongodb:27017");
 ```
 rs.add("mongodb-2.mongodb:27017");
 ```
-Check the output of `rs.status()`. You should have the 3 members listed.
+Check the output of `rs.status()`. You should have the 3 members listed. Type `exit` when done.
 
 The next step is to deploy an application that will make use of this database. For this, we're going to deploy a web app that displays information of random Marvel characters. The list of characters is retrieved from the Marvel APIs, and stored in a new MongoDB collection named "characters". 
 Let's first run a Kubernetes Job to fill the database with characters data:
