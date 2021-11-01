@@ -2,7 +2,7 @@
 
 ## Objective
 
-The objective of this workshop is to explore Kubernetes StatefulSets and their use cases. Traditionally, Kubernetes applications are developed to run as Web applications. They don't often need to write persistent data to disk or need a stable identity. In the event of a node failure in Kubernetes, the controller plane  spawns new Pods to match the expected number of replicas. This is achieved by leveraging Kubernetes Deployment and ReplicaSets. The Pods they create are stateless and replaceable. When a Pod is created, it takes an arbitrary identity with an auto-generated unique name.
+The objective of this workshop is to explore Kubernetes StatefulSets and their use cases. Traditionally, Kubernetes applications are developed to run as Web applications. They don't often need to write persistent data to disk or need a stable identity. In the event of a node failure in Kubernetes, the control plane  spawns new Pods to match the expected number of replicas. This is achieved by leveraging Kubernetes Deployment and ReplicaSets. The Pods they create are stateless and replaceable. When a Pod is created, it takes an arbitrary identity with an auto-generated unique name.
 On the other hand, StatefulSets are Kubernetes first class objects providing Pods with a stable identity, and ensuring they can write to individual persistent volumes. They have additional characteristics we're going to highlight in this workshop.
 
 # Step 0 - Bring your Kubernetes cluster up with `kubeadm`
